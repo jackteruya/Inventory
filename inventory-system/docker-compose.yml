@@ -19,7 +19,7 @@ services:
     build: .
     env_file:
       - .env
-    command: celery -A app.infrastructure.messaging.celery_app.celery_app worker --loglevel=info -Q inventory -E
+    command: celery -A app.infrastructure.messaging.celery_app.celery_app worker --loglevel=info -Q inventory -E --pool=gevent --concurrency=${CELERY_CONCURRENCY:-10} --prefetch-multiplier=1
     networks:
       - inventory-net
     depends_on:
