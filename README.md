@@ -49,7 +49,7 @@ inventory/
 
 ```bash
 git clone <url-do-repositorio>
-cd desafio-nlt
+cd Inventory
 ```
 
 ### 2. Suba tudo de uma vez (atalho)
