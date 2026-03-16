@@ -1,6 +1,11 @@
-.PHONY: up backend frontend env-backend env-frontend
+.PHONY: up down backend frontend env-backend env-frontend
 
 up: env-backend env-frontend backend frontend
+
+down:
+	docker compose -f inventory-system/docker-compose.yml down
+	docker stop inventory-frontend 2>/dev/null || true
+	docker rm inventory-frontend 2>/dev/null || true
 
 env-backend:
 	cp inventory-system/.env.example inventory-system/.env
