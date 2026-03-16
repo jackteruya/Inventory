@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     debug: bool = True
     api_v1_prefix: str = "/api"
     cors_origins: list[str] = ["*"]
+    log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://inventory:inventory@postgres:5432/inventory"
     celery_broker_url: str = "amqp://guest:guest@rabbitmq:5672//"
     celery_result_backend: str = "rpc://"

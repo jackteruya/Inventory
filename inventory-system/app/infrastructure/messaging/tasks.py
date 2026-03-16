@@ -1,21 +1,25 @@
-import logging
 import random
 import time
 
 from app.infrastructure.messaging.celery_app import celery_app
-from app.infrastructure.observability.logging import setup_logging
+from app.infrastructure.observability.logging import get_logger, setup_logging
 
-logger = logging.getLogger(__name__)
+setup_logging()
+
+logger = get_logger(__name__)
 
 
 class InventoryTask(celery_app.Task):
+    def on_retry(self, exc, task_id, args, kwargs, einfo):
+        logger.warning(
+            "task retrying",
+            extra={"task_id": task_id, "attempt": self.request.retries, "error": str(exc)},
+        )
+
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error(
-            "Task %s definitively failed after all retries. args=%s kwargs=%s error=%s",
-            task_id,
-            args,
-            kwargs,
-            exc,
+            "task permanently failed",
+            extra={"task_id": task_id, "args": args, "kwargs": kwargs, "error": str(exc)},
         )
 
 
@@ -27,11 +31,18 @@ class InventoryTask(celery_app.Task):
     retry_kwargs={"max_retries": 3},
 )
 def inventory_changed_task(self, item_id: str, event_type: str, quantity: int) -> dict:
-    setup_logging()
+    logger.info(
+        "task started",
+        extra={"task_id": self.request.id, "item_id": item_id, "event_type": event_type, "quantity": quantity},
+    )
 
     if random.randint(0, 9) < 5:
         raise Exception("Simulated processing failure.")
 
     time.sleep(random.randint(1, 5))
 
-    return {"item_id": item_id, "event_type": event_type, "quantity": quantity, "status": "processed"}
+    result = {"item_id": item_id, "event_type": event_type, "quantity": quantity, "status": "processed"}
+
+    logger.info("task completed", extra={"task_id": self.request.id, "item_id": item_id, "event_type": event_type})
+
+    return result
